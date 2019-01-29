@@ -10,36 +10,41 @@ int main(int argc, char *argv[]) {
   pcap_t *handle;
   char *dev;
   char err_buf[PCAP_ERRBUF_SIZE];
-  char filter_exp[20]; /* size needed to store "net " and an ip addr */
+  char filter_exp[20];  //size needed to store "net " and an ip addr 
   struct bpf_program fp;
   bpf_u_int32 netmask;
   bpf_u_int32 ip;
+  const u_char *packet;
+  struct pcap_pkthdr header;
 
   /* Find our network interface device */
   dev = pcap_lookupdev(err_buf);
+  printf("%s\n",dev);
   if(!dev) {
     fprintf(stderr, "Couldn't find default device: %s\n", err_buf);
     exit(EXIT_FAILURE);
   }
 
   /* Find our ip and netmask */
-  if (pcap_lookupnet(dev, &ip, &netmask, err_buf) == -1) {
+  if (pcap_lookupnet("lo", &ip, &netmask, err_buf) == -1) {
     fprintf(stderr, "Couldn't get ip and netmask for device %s: %s\n", dev, err_buf);
 	  ip = 0;
 		netmask = 0;
 	}
+  printf("%d\n",ip);
+  printf("%d\n",netmask);
 
   /* Open the session in promiscuous mode */
-  handle = pcap_open_live(dev, BUFSIZ, 1, 1000, err_buf);
+  handle = pcap_open_live("lo", BUFSIZ, 1, 1000, err_buf);
   if(!handle) {
     fprintf(stderr, "Couldn't open device %s: %s\n", dev, err_buf);
     exit(EXIT_FAILURE);
   }
 
-  strcpy(filter_exp, "net ");
-  strncpy(filter_exp + strlen("net "), argv[1], MAX_IP_LEN);
+  //strcpy(filter_exp, "net ");
+//  strncpy(filter_exp + strlen("net "), argv[1], MAX_IP_LEN);
 
-  if(pcap_compile(handle, &fp, filter_exp, 0, ip)) {
+  if(pcap_compile(handle, &fp, "net 127.0.0.1", 0, ip)) {
     fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
 	  exit(EXIT_FAILURE);
 	}
@@ -49,6 +54,8 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
+  packet = pcap_next(handle, &header);
+  printf("%d",header.len);
   /* session should be ready to go once we have a callback function to service packets
     we can call pcap_loop() here */
 }
