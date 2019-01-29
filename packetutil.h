@@ -26,10 +26,10 @@ struct arp_header{
   uint8_t hardware_size;
   uint8_t protocol_size;
   uint16_t op;
-  struct ether_addr sender_mac;
-  struct in_addr sender_ip;
-  struct ether_addr target_mac;
-  struct in_addr target_ip;
+//  struct ether_addr sender_mac;
+//  struct in_addr sender_ip;
+//  struct ether_addr target_mac;
+//  struct in_addr target_ip;
 }__attribute__((packed));
 
 struct arp_packet{

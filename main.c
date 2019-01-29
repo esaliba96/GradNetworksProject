@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pcap.h>
 #include <string.h>
+#include "parse.h"
 
 /* max length of a dot-notation ip address including null terminator */
 #define MAX_IP_LEN 16
@@ -54,8 +55,9 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-  packet = pcap_next(handle, &header);
-  printf("%d",header.len);
+ // packet = pcap_next(handle, &header);
+ // printf("%d",header.len);
+  pcap_loop(handle, 10, packet_handler, NULL);
   /* session should be ready to go once we have a callback function to service packets
     we can call pcap_loop() here */
 }

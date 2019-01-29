@@ -1,7 +1,12 @@
 #include "packetutil.h"
 #include "parse.h"
 
-void print_ether(uint8_t *packet) {
+void packet_handler(u_char *args, const struct pcap_pkthdr *packet_header, const u_char *packet) {
+    print_ether(packet);
+    return;
+}
+
+void print_ether(const u_char *packet) {
   char *dest, *src;
   uint8_t *data;
 
