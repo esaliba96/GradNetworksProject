@@ -12,8 +12,8 @@
 
 //ethernet_header_size: 14 bytes
 struct ethernet_header{
-  struct ether_addr dest;
-  struct ether_addr host;
+  uint8_t dest_MAC[6];
+  uint8_t src_MAC[6]; 
   uint16_t type;
 }__attribute__((packed));
 
@@ -21,11 +21,11 @@ struct ethernet_header{
 //in_addr is 32 bits --> 4 bytes(IP)
 //Total Arp_Header_Size: 28 bytes
 struct arp_header{
-  uint16_t hardware;
+  uint16_t hardware_type;
   uint16_t protocol_type;
   uint8_t hardware_size;
   uint8_t protocol_size;
-  uint16_t opcode;
+  uint16_t op;
   struct ether_addr sender_mac;
   struct in_addr sender_ip;
   struct ether_addr target_mac;
