@@ -4,14 +4,18 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <netinet.h>
+//#include <netinet.h>
 #include <net/ethernet.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <pcap.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
 
 //ethernet_header_size: 14 bytes
-struct ethernet_header{
+struct eth_header{
   uint8_t dest_MAC[6];
   uint8_t src_MAC[6]; 
   uint16_t type;
@@ -33,7 +37,7 @@ struct arp_header{
 }__attribute__((packed));
 
 struct arp_packet{
-  struct ethernet_header eth_head;
+  struct eth_header eth_head;
   struct arp_header arp_head;
   char buffer[18];
   char crc[4];

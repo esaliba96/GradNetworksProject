@@ -1,12 +1,14 @@
 #include "packetutil.h"
 #include "parse.h"
+#include <sys/types.h>
+#include <sys/socket.h>
 
 void packet_handler(u_char *args, const struct pcap_pkthdr *packet_header, const u_char *packet) {
-    print_ether(packet);
+    print_ether((uint8_t*)packet);
     return;
 }
 
-void print_ether(const u_char *packet) {
+void print_ether(uint8_t *packet) {
   char *dest, *src;
   uint8_t *data;
 
@@ -30,7 +32,7 @@ void print_ether(const u_char *packet) {
      print_arp(data);     
   } else if (eth->type == 0x0800) {
      printf("IP\n\n");
-     print_IP(data);
+    // print_IP(data);
   } else {
      printf("Unknown\n\n");
   }
