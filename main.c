@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
   printf("%d\n",netmask);
 
   /* Open the session in promiscuous mode */
-  handle = pcap_open_live("lo", BUFSIZ, 1, 1000, err_buf);
+  handle = pcap_open_live("wlp7s0", BUFSIZ, 1, 1000, err_buf);
   if(!handle) {
     fprintf(stderr, "Couldn't open device %s: %s\n", dev, err_buf);
     exit(EXIT_FAILURE);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
   //strcpy(filter_exp, "net ");
 //  strncpy(filter_exp + strlen("net "), argv[1], MAX_IP_LEN);
 
-  if(pcap_compile(handle, &fp, "net 127.0.0.1", 0, ip)) {
+  if(pcap_compile(handle, &fp, "net 192.168.1.131", 0, ip)) {
     fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
 	  exit(EXIT_FAILURE);
 	}
