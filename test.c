@@ -26,11 +26,11 @@ int main(int argc, char *argv[]) {
 /* Print the list */
         for(d=alldevs; d; d=d->next)
         {
-            printf("%d. %s", ++i, d->name);
-            if (d->description)
-                printf(" (%s)\n", d->description);
-            else
-                printf(" (No description available)\n");
+            printf("%d. %s\n", ++i, d->name);
+            // if (d->description)
+            //     printf(" (%s)\n", d->description);
+            // else
+            //     printf(" (No description available)\n");
         }
 
 

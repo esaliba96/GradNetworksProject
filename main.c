@@ -3,6 +3,8 @@
 #include <pcap.h>
 #include <string.h>
 #include "parse.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 /* max length of a dot-notation ip address including null terminator */
 #define MAX_IP_LEN 16
@@ -17,6 +19,8 @@ int main(int argc, char *argv[]) {
   bpf_u_int32 ip;
   const u_char *packet;
   struct pcap_pkthdr header;
+  int sock_r;
+  
 
   /* Find our network interface device */
   dev = pcap_lookupdev(err_buf);
@@ -54,6 +58,12 @@ int main(int argc, char *argv[]) {
 	  fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
 		exit(EXIT_FAILURE);
 	}
+
+  sock_r = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL);
+  if(sock_r < 0){
+    printf("Failure to open socket\n");
+    exit(EXIT_FAILURE);
+  }
 
  // packet = pcap_next(handle, &header);
  // printf("%d",header.len);
