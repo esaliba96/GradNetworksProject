@@ -18,8 +18,8 @@
 
 //ethernet_header_size: 14 bytes
 struct eth_header{
-  struct eth_header dest;
-  struct eth_header src; 
+  uint8_t dest_MAC[6];
+  uint8_t src_MAC[6]; 
   uint16_t type;
 }__attribute__((packed));
 
@@ -40,12 +40,12 @@ struct arp_header{
 
 //28 + 14 + 22
 struct arp_packet{
-  struct eth_header eth_head;
+  struct eth_header ether_head;
   struct arp_header arp_head;
   char buffer[22];
 }__attribute__((packed));
 
-void build_arp_packet(struct arp_packet *packet, struct ether_addr src, struct ether_addr dest, struct in_addr dest, struct in_addr src);
+void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, struct in_addr dest_ip, struct in_addr src_ip);
 
 
 #endif
