@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pcap.h>
-#include <string.h>
 #include "parse.h"
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <netinet/in.h>
 
 /* max length of a dot-notation ip address including null terminator */
 #define MAX_IP_LEN 16
@@ -21,9 +13,6 @@ int main(int argc, char *argv[]) {
   bpf_u_int32 ip;
   const u_char *packet;
   struct pcap_pkthdr header;
-  int sock_r;
-  struct ifreq ifreq_ip;
-  
 
   /* Find our network interface device */
   dev = pcap_lookupdev(err_buf);
@@ -81,6 +70,7 @@ int main(int argc, char *argv[]) {
   {
   printf("error in SIOCGIFADDR \n");
   }
+
  // packet = pcap_next(handle, &header);
  // printf("%d",header.len);
   pcap_loop(handle, 10, packet_handler, NULL);

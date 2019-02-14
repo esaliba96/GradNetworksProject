@@ -14,7 +14,14 @@
 #include <pcap.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pcap.h>
+#include <string.h>
 
 //ethernet_header_size: 14 bytes
 struct eth_header{
@@ -47,5 +54,8 @@ struct arp_packet{
 
 void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, struct in_addr dest_ip, struct in_addr src_ip);
 
+int sock_r;
+struct ifreq ifreq_ip;
+  
 
 #endif
