@@ -7,13 +7,10 @@
 //#include <netinet.h>
 #include <net/ethernet.h>
 #include <netinet/ip.h>
-#include <netinet/ip.h>
-#include <netinet/ether.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pcap.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -40,9 +37,9 @@ struct arp_header{
   uint8_t protocol_size; // Not in network order
   uint16_t op; //Not in network order
   struct ether_addr sender_mac; //Not in network order
-  struct in_addr sender_ip; //
+  struct in_addr_t sender_ip; //
   struct ether_addr target_mac; //*******
-  struct in_addr target_ip;
+  struct in_addr_t target_ip;
 }__attribute__((packed));
 
 //28 + 14 + 22
@@ -52,7 +49,7 @@ struct arp_packet{
   char buffer[22];
 }__attribute__((packed));
 
-void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, struct in_addr dest_ip, struct in_addr src_ip);
+void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, struct in_addr_t dest_ip, struct in_addr_t src_ip);
 
 int sock_r;
 struct ifreq ifreq_ip;

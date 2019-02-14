@@ -1,7 +1,7 @@
 #include "packetsend.h"
 
 //builds the arp packet and ships out 
-int send_packet(uint8_t *src_mac, uint8_t *dest_mac, struct in_addr dest_ip, struct in_addr src_ip){
+int send_packet(uint8_t *src_mac, uint8_t *dest_mac, struct in_addr_t dest_ip, struct in_addr_t src_ip){
   int sendlen;
   struct arp_packet packet;
   struct sockaddr_ll sadr_ll;
