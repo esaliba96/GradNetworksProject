@@ -1,4 +1,4 @@
-#include "packetutil.h"
+//#include "packetutil.h"
 #include "parse.h"
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -28,13 +28,13 @@ void print_ether(uint8_t *packet) {
 
   printf("\t\tType: ");
   if (eth->type == 0x0806) {
-     printf("ARP\n\n"); 
-     print_arp(data);     
+    printf("ARP\n\n"); 
+    print_arp(data);     
   } else if (eth->type == 0x0800) {
-     printf("IP\n\n");
-    // print_IP(data);
+    printf("IP\n\n");
+    print_IP(data);
   } else {
-     printf("Unknown\n\n");
+    printf("Unknown\n\n");
   }
 }
 
@@ -69,4 +69,66 @@ void print_arp(uint8_t *packet) {
   target_IP = (in_addr_t *)(target_MAC + arp->hardware_size);
   net.s_addr = (in_addr_t)*target_IP;
   printf("\t\tTarget IP: %s\n\n", inet_ntoa(net));
+
+  //send_packet(sender_MAC, target_MAC, target_IP, sender_IP);
 }
+
+void print_IP(uint8_t *packet) {
+  char *protocol_name = NULL;
+  struct ip_header *ip = (struct ip_header*)(packet);
+  int checksum;
+  struct in_addr net;
+  uint8_t* data;
+
+  switch (ip->protocol) {
+    case 0x11:
+      protocol_name = "UDP";
+      break;
+    default:
+      protocol_name = "Unknown"; 
+  }
+
+   // printf("\t\tProtocol: %s\n", protocol_name);
+   // printf("\t\tChecksum: ");
+  // checksum = in_cksum((uint16_t *)packet, sizeof(struct ip_header));
+  
+   //printf("(0x%04x)\n", ntohs(ip->checksum));
+   net.s_addr = ip->src;
+   printf("\t\tSender IP: %s\n", inet_ntoa(net));
+   net.s_addr = ip->dest;
+   printf("\t\tDest IP: %s\n", inet_ntoa(net));
+
+   data = packet + ((ip->version_length & 0x0F) * 4);
+   switch (ip->protocol) {
+    case 0x11:
+      print_UDP(data);
+      break;
+    default:
+      printf("%d\n", ip->protocol);
+      break;
+   }
+}
+
+void print_UDP(uint8_t *packet) {
+  struct udp_header *udp = (struct udp_header*)(packet);
+  int src_port = (int)ntohs(udp->src_port);
+  int dest_port = (int)ntohs(udp->dest_port);
+  printf("\n\tUDP Header\n");
+
+  printf("\t\tSource Port:  ");
+  TCP_UDP_port_print(src_port);   
+}
+
+void TCP_UDP_port_print(int port) {
+  switch(port) {
+    case 53:
+      printf("DNS");
+      break;
+    default:
+      printf("%d", port);
+      break;
+  }
+  printf("\n");
+}
+
+

@@ -51,6 +51,27 @@ struct arp_packet{
 
 void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, in_addr_t dest_ip, in_addr_t src_ip);
 
+struct ip_header {
+  uint8_t version_length;
+  uint8_t service_type;
+  uint16_t total_length;
+  uint16_t identifier;
+  uint16_t flags_offset;
+  uint8_t time_live;
+  uint8_t protocol;
+  uint16_t checksum;
+  in_addr_t src;
+  in_addr_t dest;
+} __attribute__((packed));
+
+
+struct udp_header {
+  uint16_t src_port;
+  uint16_t dest_port;
+  uint16_t len;
+  uint16_t checksum;
+} __attribute__((packed));
+
 int sock_r;
 struct ifreq ifreq_ip;
   
