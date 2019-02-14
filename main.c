@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   printf("%d\n",netmask);
 
   /* Open the session in promiscuous mode */
-  handle = pcap_open_live("wlp1s0", BUFSIZ, 1, 1000, err_buf);
+  handle = pcap_open_live("eth0", BUFSIZ, 1, 1000, err_buf);
   if(!handle) {
     fprintf(stderr, "Couldn't open device %s: %s\n", dev, err_buf);
     exit(EXIT_FAILURE);
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   //strcpy(filter_exp, "net ");
 //  strncpy(filter_exp + strlen("net "), argv[1], MAX_IP_LEN);
 
-  if(pcap_compile(handle, &fp, "net 192.168.1.131", 0, ip)) {
+  if(pcap_compile(handle, &fp, "net 208.94.61.225", 0, ip)) {
     fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
 	  exit(EXIT_FAILURE);
 	}
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
   memset(&ifreq_ip, 0, sizeof(ifreq_ip));
-  strncpy(ifreq_ip.ifr_name,"wlp1s0",IFNAMSIZ-1);
+  strncpy(ifreq_ip.ifr_name,"eth0",IFNAMSIZ-1);
   
   if((ioctl(sock_r, SIOCGIFINDEX, &ifreq_ip))<0){
     printf("error in SIOCGIFINDEX \n");
@@ -66,10 +66,12 @@ int main(int argc, char *argv[]) {
   if((ioctl(sock_r, SIOCGIFHWADDR, &ifreq_ip))<0){
     printf("error in SIOCGIFHWADDR ioctl reading\n");
   }
-  if(ioctl(sock_r,SIOCGIFADDR,&ifreq_ip)<0) //getting IP Address
-  {
+  memcpy(&global_mac,&(ifreq_ip.ifr_hwaddr.sa_data),6);
+   
+  if(ioctl(sock_r,SIOCGIFADDR,&ifreq_ip)<0){
   printf("error in SIOCGIFADDR \n");
   }
+  
 
  // packet = pcap_next(handle, &header);
  // printf("%d",header.len);

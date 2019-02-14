@@ -1,4 +1,4 @@
-//#include "packetutil.h"
+#include "packetsend.h"
 #include "parse.h"
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -16,10 +16,10 @@ void print_ether(uint8_t *packet) {
 
   printf("\tEthernet Header\n");
       
-  dest = ether_ntoa((struct ether_addr *)eth->dest_MAC  );
+  dest = ether_ntoa(&eth->dest_MAC  );
   printf("\t\tDest MAC: %s\n", dest);
 
-  src = ether_ntoa((struct ether_addr *)eth->src_MAC  );
+  src = ether_ntoa(&eth->src_MAC  );
   printf("\t\tSource MAC: %s\n", src);
 
   eth->type = ntohs(eth->type);
@@ -41,7 +41,6 @@ void print_ether(uint8_t *packet) {
 void print_arp(uint8_t *packet) {
   uint8_t *sender_MAC, *target_MAC;
   in_addr_t *sender_IP, *target_IP;
-  struct in_addr net;
 
   struct arp_header *arp = (struct arp_header*)(packet);
 
@@ -56,21 +55,17 @@ void print_arp(uint8_t *packet) {
      printf("Unknown\n");
   }
    
-  sender_MAC = (uint8_t *)arp + sizeof(struct arp_header);
-  printf("\t\tSender MAC: %s\n", ether_ntoa((struct ether_addr *)sender_MAC));
-
-  sender_IP = (in_addr_t *)(sender_MAC + arp->hardware_size);
-  net.s_addr = (in_addr_t)*sender_IP;
-  printf("\t\tSender IP: %s\n", inet_ntoa(net));
-
-  target_MAC = (uint8_t*)sender_IP + arp->protocol_size;
-  printf("\t\tTarget MAC: %s\n", ether_ntoa((struct ether_addr *)target_MAC));
-
-  target_IP = (in_addr_t *)(target_MAC + arp->hardware_size);
-  net.s_addr = (in_addr_t)*target_IP;
-  printf("\t\tTarget IP: %s\n\n", inet_ntoa(net));
-
-  //send_packet(sender_MAC, target_MAC, target_IP, sender_IP);
+  struct in_addr sender;
+  sender.s_addr = arp->sender_ip;
+  struct in_addr dest;
+  dest.s_addr = arp->target_ip;
+  printf("\t\tSender MAC: %s\n", ether_ntoa(&(arp->sender_mac)));
+  printf("\t\tSender IP: %s\n", inet_ntoa(sender));
+  printf("\t\tTarget MAC: %s\n", ether_ntoa(&(arp->dest_mac)));
+  printf("\t\tTarget IP: %s\n\n", inet_ntoa(dest));
+  if(arp->op == 0x0001){
+  send_packet(&global_mac, &(arp->sender_mac),htonl(arp->sender_ip),htonl(arp->target_ip));
+  }
 }
 
 void print_IP(uint8_t *packet) {

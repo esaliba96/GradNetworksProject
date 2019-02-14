@@ -22,8 +22,8 @@
 
 //ethernet_header_size: 14 bytes
 struct eth_header{
-  uint8_t dest_MAC[6];
-  uint8_t src_MAC[6]; 
+  struct ether_addr dest_MAC;
+  struct ether_addr src_MAC; 
   uint16_t type;
 }__attribute__((packed));
 
@@ -36,9 +36,9 @@ struct arp_header{
   uint8_t hardware_size; // Not in network order
   uint8_t protocol_size; // Not in network order
   uint16_t op; //Not in network order
-  uint8_t sender_mac[6]; //Not in network order
+  struct ether_addr sender_mac; //Not in network order
   in_addr_t sender_ip; //
-  uint8_t target_mac[6]; //*******
+  struct ether_addr dest_mac; //*******
   in_addr_t target_ip;
 }__attribute__((packed));
 
@@ -49,7 +49,7 @@ struct arp_packet{
   char buffer[22];
 }__attribute__((packed));
 
-void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, in_addr_t dest_ip, in_addr_t src_ip);
+void build_arp_packet(struct arp_packet *packet, struct ether_addr *src, struct ether_addr *dest, in_addr_t dest_ip, in_addr_t src_ip);
 
 struct ip_header {
   uint8_t version_length;
@@ -74,6 +74,6 @@ struct udp_header {
 
 int sock_r;
 struct ifreq ifreq_ip;
-  
+struct ether_addr global_mac;  
 
 #endif

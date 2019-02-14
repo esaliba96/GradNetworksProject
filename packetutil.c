@@ -12,7 +12,7 @@
   Func Def:
     Builds an arp_reply packet including CRC
 **********************************************************************************************/
-void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, in_addr_t dest_ip, in_addr_t src_ip){
+void build_arp_packet(struct arp_packet *packet, struct ether_addr *src, struct ether_addr *dest, in_addr_t dest_ip, in_addr_t src_ip){
   //build eth frame
   struct eth_header e_header;
   memcpy(&(e_header.dest_MAC), dest, 6);
@@ -28,8 +28,8 @@ void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, in
   a_header.op = htons(0x0002);
   memcpy(&(a_header.sender_mac), src,6);
   a_header.sender_ip = htonl(src_ip);
-  memcpy(&(a_header.target_mac), dest,6);
-  a_header.sender_ip = htonl(dest_ip);
+  memcpy(&(a_header.dest_mac), dest,6);
+  a_header.target_ip = htonl(dest_ip);
 
   memcpy(&(packet->ether_head), &e_header, 14);
   memcpy(&(packet->arp_head), &a_header, 28);
