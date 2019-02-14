@@ -4,6 +4,8 @@
 #include <string.h>
 #include "parse.h"
 #include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 #include <netinet/in.h>
 
 /* max length of a dot-notation ip address including null terminator */
@@ -20,6 +22,7 @@ int main(int argc, char *argv[]) {
   const u_char *packet;
   struct pcap_pkthdr header;
   int sock_r;
+  struct ifreq ifreq_ip;
   
 
   /* Find our network interface device */
@@ -40,7 +43,7 @@ int main(int argc, char *argv[]) {
   printf("%d\n",netmask);
 
   /* Open the session in promiscuous mode */
-  handle = pcap_open_live("wlp7s0", BUFSIZ, 1, 1000, err_buf);
+  handle = pcap_open_live("wlp1s0", BUFSIZ, 1, 1000, err_buf);
   if(!handle) {
     fprintf(stderr, "Couldn't open device %s: %s\n", dev, err_buf);
     exit(EXIT_FAILURE);
@@ -64,7 +67,20 @@ int main(int argc, char *argv[]) {
     printf("Failure to open socket\n");
     exit(EXIT_FAILURE);
   }
+  memset(&ifreq_ip, 0, sizeof(ifreq_ip));
+  strncpy(ifreq_ip.ifr_name,"wlp1s0",IFNAMSIZ-1);
+  
+  if((ioctl(sock_r, SIOCGIFINDEX, &ifreq_ip))<0){
+    printf("error in SIOCGIFINDEX \n");
+  }
 
+  if((ioctl(sock_r, SIOCGIFHWADDR, &ifreq_ip))<0){
+    printf("error in SIOCGIFHWADDR ioctl reading\n");
+  }
+  if(ioctl(sock_r,SIOCGIFADDR,&ifreq_ip)<0) //getting IP Address
+  {
+  printf("error in SIOCGIFADDR \n");
+  }
  // packet = pcap_next(handle, &header);
  // printf("%d",header.len);
   pcap_loop(handle, 10, packet_handler, NULL);
