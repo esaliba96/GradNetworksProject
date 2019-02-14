@@ -16,5 +16,5 @@ int send_packet(uint8_t *src_mac, uint8_t *dest_mac, struct in_addr dest_ip, str
   //build the arp packet for sending
   build_arp_packet(&packet, src_mac, dest_mac, dest_ip, src_ip);
 
-  sendlen = sendto(socket)
+  sendlen = sendto(sock_r, &packet, 64, 0,(const struct sockaddr*)&sadr_ll, sizeof(struct sockaddr_ll));
 }
