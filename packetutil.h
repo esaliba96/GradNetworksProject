@@ -45,7 +45,39 @@ struct arp_packet{
   char buffer[22];
 }__attribute__((packed));
 
-void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, struct in_addr dest_ip, struct in_addr src_ip);
+struct dns_header{
+  uint16_t message_id;
+  uint16_t flags;
+  uint16_t total_questions;
+  uint16_t total_answer_rr;
+  uint16_t total_authority_rr;
+  uint16_t total_additional_rr;
+}__attribute__((packed));
 
+/* static fields of a dns question */
+struct dns_question_fields{
+  uint16_t type;
+  uint16_t class;
+}__attribute__((packed));
+
+/* static fields of a dns answer */
+struct dns_answer_fields{
+  uint16_t type;
+  uint16_t class;
+  uint32_t ttl;
+  uint16_t data_len; /* always 4 for us */
+  /* technically variable length, but we're only sending ipv4 addrs */
+  in_addr_t data;
+}__attribute__((packed));
+
+/* Necessary as DNS payloads are variable length */
+struct dns_packet_ptr{
+  void *payload;
+  unsigned len;
+};
+
+void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, struct in_addr dest_ip, struct in_addr src_ip);
+void build_dns_response(struct dns_packet_ptr *resp_ptr, 
+  struct dns_packet_ptr *query_pointer);
 
 #endif
