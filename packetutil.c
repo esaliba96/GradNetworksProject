@@ -12,11 +12,11 @@
   Func Def:
     Builds an arp_reply packet including CRC
 **********************************************************************************************/
-void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, struct in_addr dest_ip, struct in_addr src_ip){
+void build_arp_packet(struct arp_packet *packet, struct ether_addr *src, struct ether_addr *dest, in_addr_t dest_ip, in_addr_t src_ip){
   //build eth frame
   struct eth_header e_header;
-  memcpy(&e_header.dest_MAC, dest, 6)
-  memcpy(&e_header.src_MAC, src, 6);
+  memcpy(&(e_header.dest_MAC), dest, 6);
+  memcpy(&(e_header.src_MAC), src, 6);
   e_header.type = htons(0x0806);
 
   //build arp frame 
@@ -26,14 +26,14 @@ void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, st
   a_header.hardware_size = 0x06;
   a_header.protocol_size = 0x04;
   a_header.op = htons(0x0002);
-  a_header.sender_mac = src;
+  memcpy(&(a_header.sender_mac), src,6);
   a_header.sender_ip = htonl(src_ip);
-  a_header.sender_mac = dest;
-  a_header.sender_ip = htonl(dest_ip);
+  memcpy(&(a_header.dest_mac), dest,6);
+  a_header.target_ip = htonl(dest_ip);
 
-  memset(&packet.eth_header, &e_header, 14);
-  memset(&packet.arp_header, &a_header, 28);
-  memset(&packet.buffer, 0, 18); 
+  memcpy(&(packet->ether_head), &e_header, 14);
+  memcpy(&(packet->arp_head), &a_header, 28);
+  memset(&(packet->buffer), 0, 18); 
   // printf("%.4x\n",a_header.hardware_type);
   // printf("%.4x\n",a_header.protocol_type);
 }
@@ -49,7 +49,7 @@ static unsigned calc_dns_name_len(char* name){
     num_following_chars = *name;
   }
 
-  if(len > MAX_DNS_LEN)
+  if(len > MAX_DNS_NAME_LEN)
   {
     fprintf(stderr, "DNS name exceeded maximum length!\n");
     exit(EXIT_FAILURE);
@@ -59,15 +59,14 @@ static unsigned calc_dns_name_len(char* name){
 }
 
 void build_dns_response(struct dns_packet_ptr *resp_ptr, 
-  struct dns_packet_ptr *query_ptr, in_addr ip_addr){
+  char *dns_query, int len, in_addr_t ip_addr){
 
-  struct dns_packet_ptr ret_struct;
-  struct dns_header *query_header = (struct dns_header *)(query_ptr->payload);
-  unsigned name_field_len = calc_dns_name_len((char *)(query_ptr->payload + 
-    sizeof(dns_header)));
+  struct dns_header *query_header = (struct dns_header *)(dns_query);
+  unsigned name_field_len = calc_dns_name_len((char *)(dns_query + 
+    sizeof(struct dns_header)));
   /* calculate length of response packet */
-  size_t resp_len = sizeof(dns_header) + name_field_len * 2 + 
-    sizeof(dns_question_fields) + sizeof(dns_answer_fields);
+  size_t resp_len = sizeof(struct dns_header) + name_field_len * 2 + 
+    sizeof(struct dns_question_fields) + sizeof(struct dns_answer_fields);
 
   struct dns_header *resp_header = malloc(resp_len);
   resp_header->message_id = query_header->message_id;
@@ -77,13 +76,15 @@ void build_dns_response(struct dns_packet_ptr *resp_ptr,
   resp_header->total_authority_rr = 0;
   resp_header->total_additional_rr = 0;
   
-  memcpy(resp_header + sizeof(dns_header), query_header + sizeof(dns_header), 
-    name_field_len + sizeof(dns_question_fields));
+  memcpy(resp_header + sizeof(struct dns_header), query_header + 
+    sizeof(struct dns_header), name_field_len + 
+    sizeof(struct dns_question_fields));
 
   char *answer_name_field = ((char *)(resp_header) + 
-    sizeof(dns_header) + name_field_len + sizeof(dns_question_fields));
+    sizeof(struct dns_header) + name_field_len + 
+    sizeof(struct dns_question_fields));
 
-  memcpy(answer_name_field, (char *)query_header + sizeof(dns_header), 
+  memcpy(answer_name_field, (char *)query_header + sizeof(struct dns_header), 
     name_field_len);
 
   struct dns_answer_fields *answer_fields = 
@@ -94,10 +95,8 @@ void build_dns_response(struct dns_packet_ptr *resp_ptr,
   answer_fields->ttl = 300; 
   answer_fields->data_len = 4;
   answer_fields->data = ip_addr;
+
+  resp_ptr->payload = resp_header;
+  resp_ptr->len = resp_len;
 }
 
-int main(void){
-  struct arp_packet packet;
-  build_arp_packet(&packet);
-  return;
-}

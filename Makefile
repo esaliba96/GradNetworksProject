@@ -22,8 +22,8 @@ endif
 
 all:  mitm-$(EXEC_SUFFIX)
 
-mitm-$(EXEC_SUFFIX): main.c parse.c checksum.c
-	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -o $@ main.c parse.c  checksum.c -lpcap
+mitm-$(EXEC_SUFFIX): main.c parse.c checksum.c packetutil.c
+	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -o $@ main.c parse.c packetutil.c packetsend.c  checksum.c -lpcap
 
 clean:
 	-rm -rf mitm-* mitm-*.dSYM

@@ -1,11 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pcap.h>
-#include <string.h>
 #include "parse.h"
-#include <sys/socket.h>
-#include <netinet/in.h>
-
+#include <stdlib.h>
+#include <string.h>
+ 
 /* max length of a dot-notation ip address including null terminator */
 #define MAX_IP_LEN 16
 
@@ -19,12 +15,17 @@ int main(int argc, char *argv[]) {
   bpf_u_int32 ip;
   const u_char *packet;
   struct pcap_pkthdr header;
-  int sock_r;
-  
+  char buffer[20];
+
+  if (argc != 3) {
+    fprintf(stderr, "usage: exec <target_ip> <interface_name> \n");
+    exit(EXIT_FAILURE);
+  } else {
+    sprintf(buffer, "net %s", argv[1]); 
+  }
 
   /* Find our network interface device */
   dev = pcap_lookupdev(err_buf);
-  printf("%s\n",dev);
   if(!dev) {
     fprintf(stderr, "Couldn't find default device: %s\n", err_buf);
     exit(EXIT_FAILURE);
@@ -36,20 +37,15 @@ int main(int argc, char *argv[]) {
 	  ip = 0;
 		netmask = 0;
 	}
-  printf("%d\n",ip);
-  printf("%d\n",netmask);
-
+ 
   /* Open the session in promiscuous mode */
-  handle = pcap_open_live("wlp7s0", BUFSIZ, 1, 1000, err_buf);
+  handle = pcap_open_live(argv[2], BUFSIZ, 1, 1000, err_buf);
   if(!handle) {
     fprintf(stderr, "Couldn't open device %s: %s\n", dev, err_buf);
     exit(EXIT_FAILURE);
   }
 
-  //strcpy(filter_exp, "net ");
-//  strncpy(filter_exp + strlen("net "), argv[1], MAX_IP_LEN);
-
-  if(pcap_compile(handle, &fp, "net 192.168.1.131", 0, ip)) {
+  if(pcap_compile(handle, &fp, buffer, 0, ip)) {
     fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
 	  exit(EXIT_FAILURE);
 	}
@@ -64,10 +60,21 @@ int main(int argc, char *argv[]) {
     printf("Failure to open socket\n");
     exit(EXIT_FAILURE);
   }
+  memset(&ifreq_ip, 0, sizeof(ifreq_ip));
+  strncpy(ifreq_ip.ifr_name, argv[2], IFNAMSIZ-1);
+  
+  if((ioctl(sock_r, SIOCGIFINDEX, &ifreq_ip))<0){
+    printf("error in SIOCGIFINDEX \n");
+  }
 
- // packet = pcap_next(handle, &header);
- // printf("%d",header.len);
+  if((ioctl(sock_r, SIOCGIFHWADDR, &ifreq_ip))<0){
+    printf("error in SIOCGIFHWADDR ioctl reading\n");
+  }
+  memcpy(&global_mac,&(ifreq_ip.ifr_hwaddr.sa_data),6);
+   
+  if(ioctl(sock_r,SIOCGIFADDR,&ifreq_ip)<0){
+    printf("error in SIOCGIFADDR \n");
+  }
+  
   pcap_loop(handle, 10, packet_handler, NULL);
-  /* session should be ready to go once we have a callback function to service packets
-    we can call pcap_loop() here */
 }

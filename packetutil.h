@@ -4,22 +4,30 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
-//#include <netinet.h>
-#include <net/ethernet.h>
-#include <netinet/ip.h>
-#include <netinet/ip.h>
+#include <linux/if_packet.h>
 #include <netinet/ether.h>
+#include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pcap.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pcap.h>
+#include <string.h>
 
+#define MAX_DNS_NAME_LEN 255
+#define IPV4_ETH_TYPE 0x0800
+#define UDP_PROTO 17 
 
 //ethernet_header_size: 14 bytes
 struct eth_header{
-  uint8_t dest_MAC[6];
-  uint8_t src_MAC[6]; 
+  struct ether_addr dest_MAC;
+  struct ether_addr src_MAC; 
   uint16_t type;
 }__attribute__((packed));
 
@@ -33,9 +41,9 @@ struct arp_header{
   uint8_t protocol_size; // Not in network order
   uint16_t op; //Not in network order
   struct ether_addr sender_mac; //Not in network order
-  struct in_addr sender_ip; //
-  struct ether_addr target_mac; //*******
-  struct in_addr target_ip;
+  in_addr_t sender_ip; //
+  struct ether_addr dest_mac; //*******
+  in_addr_t target_ip;
 }__attribute__((packed));
 
 //28 + 14 + 22
@@ -76,8 +84,34 @@ struct dns_packet_ptr{
   unsigned len;
 };
 
-void build_arp_packet(struct arp_packet *packet, uint8_t *src, uint8_t *dest, struct in_addr dest_ip, struct in_addr src_ip);
 void build_dns_response(struct dns_packet_ptr *resp_ptr, 
-  struct dns_packet_ptr *query_pointer);
+  char *dns_query, int len, in_addr_t ip_addr);
+void build_arp_packet(struct arp_packet *packet, struct ether_addr *src, 
+  struct ether_addr *dest, in_addr_t dest_ip, in_addr_t src_ip);
+
+struct ip_header {
+  uint8_t version_length;
+  uint8_t service_type;
+  uint16_t total_length;
+  uint16_t identifier;
+  uint16_t flags_offset;
+  uint8_t time_live;
+  uint8_t protocol;
+  uint16_t checksum;
+  in_addr_t src;
+  in_addr_t dest;
+} __attribute__((packed));
+
+
+struct udp_header {
+  uint16_t src_port;
+  uint16_t dest_port;
+  uint16_t len;
+  uint16_t checksum;
+} __attribute__((packed));
+
+int sock_r;
+struct ifreq ifreq_ip;
+struct ether_addr global_mac;  
 
 #endif
