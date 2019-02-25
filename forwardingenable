@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#arguments are as follows: fake router ip, real router ip 
+#arguments are as follows: fake router ip, real router ip, our ip
 
 ###Enable port forwarding
-firewall $ echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+#echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
 
 ###Forwarding rules applied Here!
 ##Initial Rule Forwards all traffic:
@@ -11,6 +11,8 @@ firewall $ echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
 
 iptables -A FORWARD -i etho0 -d $1 -j ACCEPT
 
-iptables -A PREROUTING -d $1 -j DNAT --to-destination $2
+iptables -t nat -A PREROUTING -d $1 -j DNAT --to-destination $2
+
+iptables -t nat -A POSTROUTING -s $2 -j SNAT --to-source $3
 
 
