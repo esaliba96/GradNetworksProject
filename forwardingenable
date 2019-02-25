@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#arguments are as follows: fake router ip, real router ip 
+
 ###Enable port forwarding
 firewall $ echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
 
@@ -7,4 +9,8 @@ firewall $ echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
 ##Initial Rule Forwards all traffic:
 ##if I understand this correctly we should be sorting on traffic headed to the attacker address.
 
-iptables -I FORWARD -i etho0 -d 208.94.68.222 \ --to-destination 208.94.62.223
+iptables -A FORWARD -i etho0 -d $1 -j ACCEPT
+
+iptables -A PREROUTING -d $1 -j DNAT --to-destination $2
+
+
