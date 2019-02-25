@@ -20,6 +20,10 @@
 #include <pcap.h>
 #include <string.h>
 
+#define MAX_DNS_NAME_LEN 255
+#define IPV4_ETH_TYPE 0x0800
+#define UDP_PROTO 17 
+
 //ethernet_header_size: 14 bytes
 struct eth_header{
   struct ether_addr dest_MAC;
@@ -49,7 +53,41 @@ struct arp_packet{
   char buffer[22];
 }__attribute__((packed));
 
-void build_arp_packet(struct arp_packet *packet, struct ether_addr *src, struct ether_addr *dest, in_addr_t dest_ip, in_addr_t src_ip);
+struct dns_header{
+  uint16_t message_id;
+  uint16_t flags;
+  uint16_t total_questions;
+  uint16_t total_answer_rr;
+  uint16_t total_authority_rr;
+  uint16_t total_additional_rr;
+}__attribute__((packed));
+
+/* static fields of a dns question */
+struct dns_question_fields{
+  uint16_t type;
+  uint16_t class;
+}__attribute__((packed));
+
+/* static fields of a dns answer */
+struct dns_answer_fields{
+  uint16_t type;
+  uint16_t class;
+  uint32_t ttl;
+  uint16_t data_len; /* always 4 for us */
+  /* technically variable length, but we're only sending ipv4 addrs */
+  in_addr_t data;
+}__attribute__((packed));
+
+/* Necessary as DNS payloads are variable length */
+struct dns_packet_ptr{
+  void *payload;
+  unsigned len;
+};
+
+void build_dns_response(struct dns_packet_ptr *resp_ptr, 
+  char *dns_query, int len, in_addr_t ip_addr);
+void build_arp_packet(struct arp_packet *packet, struct ether_addr *src, 
+  struct ether_addr *dest, in_addr_t dest_ip, in_addr_t src_ip);
 
 struct ip_header {
   uint8_t version_length;

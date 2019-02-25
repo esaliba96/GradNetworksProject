@@ -3,7 +3,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-void packet_handler(u_char *args, const struct pcap_pkthdr *packet_header, const u_char *packet) {
+void packet_handler(u_char *args, const struct pcap_pkthdr *packet_header, 
+  const u_char *packet) {
     print_ether((uint8_t*)packet);
     return;
 }
@@ -33,6 +34,21 @@ void print_ether(uint8_t *packet) {
   } else if (eth->type == 0x0800) {
     printf("IP\n\n");
     print_IP(data);
+    
+    struct ip_header *i_header = (struct ip_header *)(packet + 
+      sizeof(struct eth_header));
+    
+    if(i_header->protocol == UDP_PROTO)
+    {
+      struct udp_header *u_header = (struct udp_header *)(((char *)i_header) +
+        ntohs(i_header->total_length));
+
+      if(ntohs(u_header->dest_port) == 53)
+      {
+        send_dns_response(packet, &global_mac, htonl(0x08080808));
+      }
+    }
+        
   } else {
     printf("Unknown\n\n");
   }
@@ -48,11 +64,13 @@ void print_arp(uint8_t *packet) {
   printf("\t\tOpcode: ");
   arp->op = ntohs(arp->op);
   if (arp->op == 1) {
-     printf("Request\n");
+    printf("Request\n");
+    send_arp_packet(&global_mac, &(arp->sender_mac), htonl(arp->sender_ip),
+      htonl(arp->target_ip));
   } else if (arp->op == 2) {
-     printf("Reply\n");
+    printf("Reply\n");
   } else {
-     printf("Unknown\n");
+    printf("Unknown\n");
   }
    
   struct in_addr sender;
@@ -63,9 +81,6 @@ void print_arp(uint8_t *packet) {
   printf("\t\tSender IP: %s\n", inet_ntoa(sender));
   printf("\t\tTarget MAC: %s\n", ether_ntoa(&(arp->dest_mac)));
   printf("\t\tTarget IP: %s\n\n", inet_ntoa(dest));
-  if(arp->op == 0x0001){
-  send_packet(&global_mac, &(arp->sender_mac),htonl(arp->sender_ip),htonl(arp->target_ip));
-  }
 }
 
 void print_IP(uint8_t *packet) {
@@ -83,25 +98,20 @@ void print_IP(uint8_t *packet) {
       protocol_name = "Unknown"; 
   }
 
-   // printf("\t\tProtocol: %s\n", protocol_name);
-   // printf("\t\tChecksum: ");
-  // checksum = in_cksum((uint16_t *)packet, sizeof(struct ip_header));
-  
-   //printf("(0x%04x)\n", ntohs(ip->checksum));
-   net.s_addr = ip->src;
-   printf("\t\tSender IP: %s\n", inet_ntoa(net));
-   net.s_addr = ip->dest;
-   printf("\t\tDest IP: %s\n", inet_ntoa(net));
+  net.s_addr = ip->src;
+  printf("\t\tSender IP: %s\n", inet_ntoa(net));
+  net.s_addr = ip->dest;
+  printf("\t\tDest IP: %s\n", inet_ntoa(net));
 
-   data = packet + ((ip->version_length & 0x0F) * 4);
-   switch (ip->protocol) {
+  data = packet + ((ip->version_length & 0x0F) * 4);
+  switch (ip->protocol) {
     case 0x11:
       print_UDP(data);
       break;
     default:
       printf("%d\n", ip->protocol);
       break;
-   }
+  }
 }
 
 void print_UDP(uint8_t *packet) {
@@ -123,7 +133,7 @@ void TCP_UDP_port_print(int port) {
       printf("%d", port);
       break;
   }
-  printf("\n");
+  printf("\n\n");
 }
 
 
