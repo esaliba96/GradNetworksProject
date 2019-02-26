@@ -5,7 +5,8 @@
 
 int send_arp_packet(struct ether_addr *src_mac, struct ether_addr *dest_mac, 
   in_addr_t dest_ip, in_addr_t src_ip);
-void send_dns_response(char *query_packet, struct ether_addr *src_MAC,
-  in_addr_t ip_addr);
+void send_dns_response(char *query_packet, unsigned query_len, 
+  struct ether_addr *src_MAC, struct ether_addr *dst_MAC, 
+  in_addr_t spoofed_src_IP, in_addr_t dst_IP);
 
 #endif

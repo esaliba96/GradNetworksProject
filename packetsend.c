@@ -17,31 +17,22 @@ int send_arp_packet(struct ether_addr *src_mac, struct ether_addr *dest_mac,
     sizeof(struct sockaddr_ll));
 }
 
-void send_dns_response(char *query_packet, struct ether_addr *src_MAC,
-  in_addr_t ip_addr)
+void send_dns_response(char *dns_query, unsigned dns_query_len, 
+  struct ether_addr *src_MAC, struct ether_addr *dst_MAC, 
+  in_addr_t spoofed_src_IP, in_addr_t dst_IP)
 {
   struct dns_packet_ptr resp_packet_ptr;
 
-  int len = sizeof(struct eth_header) + 
-    ((struct ip_header *)
-    (query_packet + sizeof(struct eth_header)))->total_length;
-
-  char *dns_query = query_packet + sizeof(struct eth_header) + 
-    sizeof(struct ip_header) + sizeof(struct udp_header);
-  unsigned dns_query_len = len - sizeof(struct ip_header) - 
-    sizeof(struct udp_header);
-  
-  build_dns_response(&resp_packet_ptr, dns_query, dns_query_len, ip_addr);
+  build_dns_response(&resp_packet_ptr, dns_query, dns_query_len, 
+    spoofed_src_IP);
 
   char *resp_packet = malloc(sizeof(struct eth_header) + 
     sizeof(struct ip_header) + sizeof(struct udp_header) + 
     resp_packet_ptr.len);
   
   struct eth_header *e_header = (struct eth_header *)resp_packet;
-  memcpy(&(e_header->dest_MAC), 
-    &(((struct eth_header *)query_packet)->src_MAC), 
-    sizeof(struct ether_addr));
-  memcpy(&e_header->src_MAC, src_MAC, sizeof(struct ether_addr));
+  memcpy(&(e_header->dest_MAC), src_MAC, sizeof(struct ether_addr));
+  memcpy(&e_header->src_MAC, dst_MAC, sizeof(struct ether_addr));
   e_header->type = htons(IPV4_ETH_TYPE);
 
   struct ip_header *i_header = (struct ip_header *)((char *)e_header + 
@@ -54,10 +45,8 @@ void send_dns_response(char *query_packet, struct ether_addr *src_MAC,
   i_header->flags_offset = 0x4000; //do not fragment, first fragment
   i_header->time_live = 32; //arbitrary
   i_header->protocol = UDP_PROTO;
-  i_header->src = 
-    ((struct ip_header *)(query_packet + sizeof(struct eth_header)))->dest;
-  i_header->dest = 
-    ((struct ip_header *)(query_packet + sizeof(struct eth_header)))->src;
+  i_header->src = spoofed_src_IP;
+  i_header->dest = dst_IP;
   i_header->checksum = htons(in_cksum((unsigned short *)i_header, 
     sizeof(struct ip_header)));  
   
@@ -78,9 +67,7 @@ void send_dns_response(char *query_packet, struct ether_addr *src_MAC,
   struct sockaddr_ll saddr_ll;
   saddr_ll.sll_ifindex = ifreq_ip.ifr_ifindex; //interface index
   saddr_ll.sll_halen = ETH_ALEN; //length of mac address
-  memcpy(&(saddr_ll.sll_addr), 
-    &(((struct eth_header *)query_packet)->src_MAC), 
-    sizeof(struct ether_addr));
+  memcpy(&(saddr_ll.sll_addr), src_MAC, sizeof(struct ether_addr));
 
   int sendlen = sendto(sock_r, &resp_packet, resp_len, 0, 
     (const struct sockaddr *)&saddr_ll, sizeof(struct sockaddr_ll));

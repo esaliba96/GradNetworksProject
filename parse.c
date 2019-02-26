@@ -45,7 +45,11 @@ void print_ether(uint8_t *packet) {
 
       if(ntohs(u_header->dest_port) == 53)
       {
-        send_dns_response(packet, &global_mac, htonl(0x08080808));
+        int len = i_header->total_length - sizeof(struct ip_header) + 
+          sizeof(struct udp_header);
+
+        send_dns_response(packet, len, &global_mac, &(eth->src_MAC), 
+          i_header->dest, i_header->src);
       }
     }
         
