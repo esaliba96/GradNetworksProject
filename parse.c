@@ -46,10 +46,6 @@ void print_ether(uint8_t *packet) {
       struct udp_header *u_header = (struct udp_header *)(((char *)i_header) +
         ip_header_len);
 
-      printf("IP header len: %d\n", ip_header_len);
-
-      printf("UDP dest port: %u\n", ntohs(u_header->dest_port));
-      
       unsigned len = ntohs(i_header->total_length) - ip_header_len - 
         sizeof(struct udp_header);
       struct dns_header *d_header = (struct dns_header *)((char *)u_header + 
@@ -57,9 +53,6 @@ void print_ether(uint8_t *packet) {
       struct dns_question_fields *q_fields = (struct dns_question_fields *)
         (((char *)d_header) + len - sizeof(struct dns_question_fields));
       
-      printf("flags: %x\n", ntohs(d_header->flags));
-      printf("type: %u\n", ntohs(q_fields->type));
-
       if(ntohs(u_header->dest_port) == 53 && 
         ntohs(d_header->flags) == DNS_STANDARD_QUERY &&
         ntohs(q_fields->type) == 1)
