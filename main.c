@@ -1,4 +1,5 @@
 #include "parse.h"
+#include "packetutil.h"
 #include <stdlib.h>
 #include <string.h>
  
@@ -45,7 +46,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  if(pcap_compile(handle, &fp, buffer, 0, ip)) {
+  if(pcap_compile(handle, &fp, NULL, 0, ip)) {
     fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
 	  exit(EXIT_FAILURE);
 	}
@@ -75,6 +76,8 @@ int main(int argc, char *argv[]) {
   if(ioctl(sock_r,SIOCGIFADDR,&ifreq_ip)<0){
     printf("error in SIOCGIFADDR \n");
   }
-  
-  pcap_loop(handle, 10, packet_handler, NULL);
+    
+  inet_aton(argv[1], &global_ip);
+
+  pcap_loop(handle, 0, packet_handler, NULL);
 }

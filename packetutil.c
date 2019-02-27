@@ -64,37 +64,39 @@ void build_dns_response(struct dns_packet_ptr *resp_ptr,
   struct dns_header *query_header = (struct dns_header *)(dns_query);
   unsigned name_field_len = calc_dns_name_len((char *)(dns_query + 
     sizeof(struct dns_header)));
+
+  printf("name_field_len: %u\n", name_field_len);
   /* calculate length of response packet */
   size_t resp_len = sizeof(struct dns_header) + name_field_len * 2 + 
     sizeof(struct dns_question_fields) + sizeof(struct dns_answer_fields);
 
   struct dns_header *resp_header = malloc(resp_len);
   resp_header->message_id = query_header->message_id;
-  resp_header->flags = query_header->flags | 0x8000;
-  resp_header->total_questions = 1;
-  resp_header->total_answer_rr = 1;
+  resp_header->flags = htons(ntohs(query_header->flags) | 0x8000);
+  resp_header->total_questions = htons(1);
+  resp_header->total_answer_rr = htons(1);
   resp_header->total_authority_rr = 0;
   resp_header->total_additional_rr = 0;
   
-  memcpy(resp_header + sizeof(struct dns_header), query_header + 
-    sizeof(struct dns_header), name_field_len + 
+  memcpy(((char *)resp_header) + sizeof(struct dns_header), 
+    ((char *)query_header) + sizeof(struct dns_header), name_field_len + 
     sizeof(struct dns_question_fields));
 
   char *answer_name_field = ((char *)(resp_header) + 
     sizeof(struct dns_header) + name_field_len + 
     sizeof(struct dns_question_fields));
 
-  memcpy(answer_name_field, (char *)query_header + sizeof(struct dns_header), 
+  memcpy(answer_name_field, ((char *)query_header) + sizeof(struct dns_header), 
     name_field_len);
 
   struct dns_answer_fields *answer_fields = 
     (struct dns_answer_fields *)(answer_name_field + name_field_len);
   
-  answer_fields->type = 1;
-  answer_fields->class = 1;
-  answer_fields->ttl = 300; 
-  answer_fields->data_len = 4;
-  answer_fields->data = ip_addr;
+  answer_fields->type = htons(1);
+  answer_fields->class = htons(1);
+  answer_fields->ttl = htonl(60);
+  answer_fields->data_len = htons(4);
+  answer_fields->data = global_ip.s_addr;
 
   resp_ptr->payload = resp_header;
   resp_ptr->len = resp_len;

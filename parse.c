@@ -12,7 +12,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *packet_header,
 void print_ether(uint8_t *packet) {
   char *dest, *src;
   uint8_t *data;
-
+  
   struct eth_header *eth = (struct eth_header*)packet;
 
   printf("\tEthernet Header\n");
@@ -37,20 +37,39 @@ void print_ether(uint8_t *packet) {
     
     struct ip_header *i_header = (struct ip_header *)(packet + 
       sizeof(struct eth_header));
-    
+  
     if(i_header->protocol == UDP_PROTO)
     {
+      /* note header length is in words, not bytes */
+      unsigned ip_header_len = (i_header->version_length & 0x0f) * 4;
+
       struct udp_header *u_header = (struct udp_header *)(((char *)i_header) +
-        ntohs(i_header->total_length));
+        ip_header_len);
 
-      if(ntohs(u_header->dest_port) == 53)
+      printf("IP header len: %d\n", ip_header_len);
+
+      printf("UDP dest port: %u\n", ntohs(u_header->dest_port));
+      
+      unsigned len = ntohs(i_header->total_length) - ip_header_len - 
+        sizeof(struct udp_header);
+      struct dns_header *d_header = (struct dns_header *)((char *)u_header + 
+        sizeof(struct udp_header));
+      struct dns_question_fields *q_fields = (struct dns_question_fields *)
+        (((char *)d_header) + len - sizeof(struct dns_question_fields));
+      
+      printf("flags: %x\n", ntohs(d_header->flags));
+      printf("type: %u\n", ntohs(q_fields->type));
+
+      if(ntohs(u_header->dest_port) == 53 && 
+        ntohs(d_header->flags) == DNS_STANDARD_QUERY &&
+        ntohs(q_fields->type) == 1)
       {
-        int len = i_header->total_length - sizeof(struct ip_header) + 
-          sizeof(struct udp_header);
-
-        send_dns_response(packet, len, &global_mac, &(eth->src_MAC), 
-          i_header->dest, i_header->src);
+        send_dns_response((char *)u_header + sizeof(struct udp_header), len, 
+          &(eth->src_MAC), &global_mac, i_header->dest, i_header->src, 
+          u_header->src_port);
       }
+
+	  print_UDP(data);
     }
         
   } else {

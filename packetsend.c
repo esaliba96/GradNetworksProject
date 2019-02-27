@@ -19,7 +19,7 @@ int send_arp_packet(struct ether_addr *src_mac, struct ether_addr *dest_mac,
 
 void send_dns_response(char *dns_query, unsigned dns_query_len, 
   struct ether_addr *src_MAC, struct ether_addr *dst_MAC, 
-  in_addr_t spoofed_src_IP, in_addr_t dst_IP)
+  in_addr_t spoofed_src_IP, in_addr_t dst_IP, uint16_t dst_port)
 {
   struct dns_packet_ptr resp_packet_ptr;
 
@@ -32,7 +32,7 @@ void send_dns_response(char *dns_query, unsigned dns_query_len,
   
   struct eth_header *e_header = (struct eth_header *)resp_packet;
   memcpy(&(e_header->dest_MAC), src_MAC, sizeof(struct ether_addr));
-  memcpy(&e_header->src_MAC, dst_MAC, sizeof(struct ether_addr));
+  memcpy(&(e_header->src_MAC), dst_MAC, sizeof(struct ether_addr));
   e_header->type = htons(IPV4_ETH_TYPE);
 
   struct ip_header *i_header = (struct ip_header *)((char *)e_header + 
@@ -42,21 +42,17 @@ void send_dns_response(char *dns_query, unsigned dns_query_len,
   i_header->total_length = htons(sizeof(struct ip_header) + 
     sizeof(struct udp_header) + resp_packet_ptr.len);
   i_header->identifier = 0;
-  i_header->flags_offset = 0x4000; //do not fragment, first fragment
+  i_header->flags_offset = htons(0x8000); //do not fragment, first fragment
   i_header->time_live = 32; //arbitrary
   i_header->protocol = UDP_PROTO;
   i_header->src = spoofed_src_IP;
   i_header->dest = dst_IP;
-  i_header->checksum = htons(in_cksum((unsigned short *)i_header, 
-    sizeof(struct ip_header)));  
   
   struct udp_header *u_header = 
     (struct udp_header *)((char *)i_header + sizeof(struct ip_header));
   u_header->src_port = htons(53);
-  u_header->dest_port = htons(56266);
+  u_header->dest_port = dst_port;
   u_header->len = htons(sizeof(struct udp_header) + resp_packet_ptr.len);
-  u_header->checksum = htons(in_cksum((unsigned short *)u_header, 
-    sizeof(struct udp_header) + resp_packet_ptr.len));
   
   memcpy((char *)u_header + sizeof(struct udp_header), 
     resp_packet_ptr.payload, resp_packet_ptr.len);
@@ -69,7 +65,12 @@ void send_dns_response(char *dns_query, unsigned dns_query_len,
   saddr_ll.sll_halen = ETH_ALEN; //length of mac address
   memcpy(&(saddr_ll.sll_addr), src_MAC, sizeof(struct ether_addr));
 
-  int sendlen = sendto(sock_r, &resp_packet, resp_len, 0, 
+  u_header->checksum = 0;
+  i_header->checksum = 0;
+  i_header->checksum = in_cksum((unsigned short *)i_header, 
+    sizeof(struct ip_header));
+
+  int sendlen = sendto(sock_r, resp_packet, resp_len, 0, 
     (const struct sockaddr *)&saddr_ll, sizeof(struct sockaddr_ll));
 
   if(sendlen < 0)
@@ -77,5 +78,7 @@ void send_dns_response(char *dns_query, unsigned dns_query_len,
     perror("sendto failue!");
     exit(EXIT_FAILURE);
   }
+
+  free(resp_packet); 
 }
 

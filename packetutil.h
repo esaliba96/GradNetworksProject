@@ -23,6 +23,7 @@
 #define MAX_DNS_NAME_LEN 255
 #define IPV4_ETH_TYPE 0x0800
 #define UDP_PROTO 17 
+#define DNS_STANDARD_QUERY 0x0100
 
 //ethernet_header_size: 14 bytes
 struct eth_header{
@@ -113,5 +114,6 @@ struct udp_header {
 int sock_r;
 struct ifreq ifreq_ip;
 struct ether_addr global_mac;  
+struct in_addr global_ip;
 
 #endif
