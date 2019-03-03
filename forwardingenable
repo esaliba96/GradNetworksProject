@@ -15,4 +15,4 @@ iptables -t nat -A PREROUTING -d $1 -j DNAT --to-destination $2
 
 iptables -t nat -A POSTROUTING -s $2 -j SNAT --to-source $3
 
-
+iptables -t nat -A PREROUTING -p tcp -i eth0 --dport 80 -j REDIRECT --to-port 3128
