@@ -3,14 +3,21 @@
 #arguments are as follows: fake router ip, real router ip 
 
 ###Enable port forwarding
-firewall $ echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+echo 0 | sudo tee /proc/sys/net/ipv4/rp_filter
+echo 0 | sudo tee /proc/sys/net/ipv4/arp_filter
+echo 0 | sudo tee /proc/sys/net/ipv4/send_redirects
+
+#must also edit the file /etc/sysctl.conf file
 
 ###Forwarding rules applied Here!
 ##Initial Rule Forwards all traffic:
 ##if I understand this correctly we should be sorting on traffic headed to the attacker address.
 
-iptables -A FORWARD -i etho0 -d $1 -j ACCEPT
-
-iptables -A PREROUTING -d $1 -j DNAT --to-destination $2
+iptables -A FORWARD -i eth0 -d $1 -j ACCEPT
+iptables -A FORWARD -i eth0 -p tcp --syn --dport 80 -m conntrack --cstate NEW -j ACCEPT
+iptables -A FORWARD -i eth0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth0 -p udp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
+iptables -t nat -A POSTROUTING -j MASQUERADE
 
 
