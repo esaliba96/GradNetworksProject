@@ -3,10 +3,10 @@
 #arguments are as follows: fake router ip, real router ip, our ip
 
 ###Enable port forwarding
-echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
-echo 0 | sudo tee /proc/sys/net/ipv4/rp_filter
-echo 0 | sudo tee /proc/sys/net/ipv4/arp_filter
-echo 0 | sudo tee /proc/sys/net/ipv4/send_redirects
+#echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+echo 0 | sudo tee /proc/sys/net/ipv4/conf/eth0/rp_filter
+echo 0 | sudo tee /proc/sys/net/ipv4/conf/eth0/arp_filter
+echo 0 | sudo tee /proc/sys/net/ipv4/conf/eth0/send_redirects
 
 ##Initial Rule Forwards all traffic:
 ##if I understand this correctly we should be sorting on traffic headed to the attacker address.
