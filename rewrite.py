@@ -2,6 +2,7 @@
 
 import sys
 import logging
+from datetime import datetime
 
 logging.basicConfig(filename='squid-redirect.log',level=logging.DEBUG)
 
