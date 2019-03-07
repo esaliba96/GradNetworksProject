@@ -11,8 +11,8 @@ while request:
     [ch_id,url,ipaddr,method,user]=request.split()
     logging.debug(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ': ' + request +'\n')
     response  = ch_id + ' OK'
-    if '.jpg' in url:
-        response +=  ' rewrite-url=http://127.0.0.0/image.jpg'
+    if '.jpg' in url or '.png' in url or '.jpeg' in url:
+        response +=  ' rewrite-url=http://127.0.0.1:8000/image.jpg'
     response += '\n'
     sys.stdout.write(response)
     sys.stdout.flush()
