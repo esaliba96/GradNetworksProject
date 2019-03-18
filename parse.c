@@ -15,25 +15,25 @@ void print_ether(uint8_t *packet) {
 
   struct eth_header *eth = (struct eth_header*)packet;
 
-  printf("\tEthernet Header\n");
+ // printf("\tEthernet Header\n");
       
   dest = ether_ntoa(&eth->dest_MAC  );
-  printf("\t\tDest MAC: %s\n", dest);
+  //printf("\t\tDest MAC: %s\n", dest);
 
   src = ether_ntoa(&eth->src_MAC  );
-  printf("\t\tSource MAC: %s\n", src);
+  //printf("\t\tSource MAC: %s\n", src);
 
   eth->type = ntohs(eth->type);
 
   data = packet + sizeof(struct eth_header);
 
-  printf("\t\tType: ");
+ // printf("\t\tType: ");
   if (eth->type == 0x0806) {
-    printf("ARP\n\n"); 
+  //  printf("ARP\n\n"); 
     print_arp(data);     
   } else if (eth->type == 0x0800) {
-    printf("IP\n\n");
-    print_IP(data);
+    //printf("IP\n\n");
+    //print_IP(data);
     
     struct ip_header *i_header = (struct ip_header *)(packet + 
       sizeof(struct eth_header));
@@ -49,9 +49,9 @@ void print_ether(uint8_t *packet) {
       }
     }
         
-  } else {
-    printf("Unknown\n\n");
-  }
+  } //else {
+    //printf("Unknown\n\n");
+  //}
 }
 
 void print_arp(uint8_t *packet) {
@@ -60,27 +60,28 @@ void print_arp(uint8_t *packet) {
 
   struct arp_header *arp = (struct arp_header*)(packet);
 
-  printf("\tARP header\n");
-  printf("\t\tOpcode: ");
+  //printf("\tARP header\n");
+  //printf("\t\tOpcode: ");
   arp->op = ntohs(arp->op);
   if (arp->op == 1) {
-    printf("Request\n");
+    //printf("Request\n");
     send_arp_packet(&global_mac, &(arp->sender_mac), htonl(arp->sender_ip),
       htonl(arp->target_ip));
-  } else if (arp->op == 2) {
-    printf("Reply\n");
-  } else {
-    printf("Unknown\n");
-  }
+  } //else if (arp->op == 2) {
+    //printf("Reply\n");
+  //}
+ // else {
+   // printf("Unknown\n");
+  //}
    
   struct in_addr sender;
   sender.s_addr = arp->sender_ip;
   struct in_addr dest;
   dest.s_addr = arp->target_ip;
-  printf("\t\tSender MAC: %s\n", ether_ntoa(&(arp->sender_mac)));
-  printf("\t\tSender IP: %s\n", inet_ntoa(sender));
-  printf("\t\tTarget MAC: %s\n", ether_ntoa(&(arp->dest_mac)));
-  printf("\t\tTarget IP: %s\n\n", inet_ntoa(dest));
+  //printf("\t\tSender MAC: %s\n", ether_ntoa(&(arp->sender_mac)));
+  //printf("\t\tSender IP: %s\n", inet_ntoa(sender));
+  //printf("\t\tTarget MAC: %s\n", ether_ntoa(&(arp->dest_mac)));
+  //printf("\t\tTarget IP: %s\n\n", inet_ntoa(dest));
 }
 
 void print_IP(uint8_t *packet) {
@@ -99,41 +100,41 @@ void print_IP(uint8_t *packet) {
   }
 
   net.s_addr = ip->src;
-  printf("\t\tSender IP: %s\n", inet_ntoa(net));
+  //printf("\t\tSender IP: %s\n", inet_ntoa(net));
   net.s_addr = ip->dest;
-  printf("\t\tDest IP: %s\n", inet_ntoa(net));
+  //printf("\t\tDest IP: %s\n", inet_ntoa(net));
 
   data = packet + ((ip->version_length & 0x0F) * 4);
-  switch (ip->protocol) {
-    case 0x11:
-      print_UDP(data);
-      break;
-    default:
-      printf("%d\n", ip->protocol);
-      break;
-  }
+  //switch (ip->protocol) {
+    //case 0x11:
+     // print_UDP(data);
+     // break;
+    //default:
+      //printf("%d\n", ip->protocol);
+      //break;
+  //}
 }
 
 void print_UDP(uint8_t *packet) {
   struct udp_header *udp = (struct udp_header*)(packet);
   int src_port = (int)ntohs(udp->src_port);
   int dest_port = (int)ntohs(udp->dest_port);
-  printf("\n\tUDP Header\n");
+  //printf("\n\tUDP Header\n");
 
-  printf("\t\tSource Port:  ");
+  //printf("\t\tSource Port:  ");
   TCP_UDP_port_print(src_port);   
 }
 
 void TCP_UDP_port_print(int port) {
-  switch(port) {
-    case 53:
-      printf("DNS");
-      break;
-    default:
-      printf("%d", port);
-      break;
-  }
-  printf("\n\n");
+  //switch(port) {
+    //case 53:
+      //printf("DNS");
+      //break;
+    //default:
+      //printf("%d", port);
+      //break;
+  //}
+  //printf("\n\n");
 }
 
 

@@ -1,0 +1,24 @@
+8 switches:
+  Trial1: .37s (slower)
+  Trial2: .0003s (slower)
+  Trial3: .7s (slower)
+  Trial4: .48s (slower)
+  Trial5: .06s (slower)
+  Trial6: .32s (slower)
+  Trial7: .16s (slower)
+  Trial8: .48s (slower)
+  Trial9: .32s (slower)
+  Trial10: .65s (slower)
+
+12 switches:
+  Trial1: .28s (slower)
+  Trial2: .37s (slower)
+  Trial3: .71s (slower)
+  Trial4: .93s (slower)
+  Trial5: .12s (slower)
+  Trial6: .99s (slower)
+  Trial7: .42s (slower)
+  Trial8: .97s (slower)
+  Trial9: 1.00s (slower)
+  Trial10: 1.15s (slower)
+
